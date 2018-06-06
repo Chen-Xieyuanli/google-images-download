@@ -33,13 +33,15 @@ import json
 import re
 import codecs
 import socket
+import re
+import requests
 
 args_list = ["keywords", "keywords_from_file", "prefix_keywords", "suffix_keywords",
              "limit", "format", "color", "color_type", "usage_rights", "size",
              "exact_size", "aspect_ratio", "type", "time", "time_range", "delay", "url", "single_image",
              "output_directory", "image_directory", "no_directory", "proxy", "similar_images", "specific_site",
              "print_urls", "print_size", "print_paths", "metadata", "extract_metadata", "socket_timeout",
-             "thumbnail", "language", "prefix", "chromedriver", "related_images", "safe_search", "no_numbering"]
+             "thumbnail", "language", "prefix", "chromedriver", "related_images", "safe_search", "no_numbering","baidu"]
 
 
 def user_input():
@@ -108,6 +110,8 @@ def user_input():
         parser.add_argument('-ri', '--related_images', default=False, help="Downloads images that are similar to the keyword provided", action="store_true")
         parser.add_argument('-sa', '--safe_search', default=False, help="Turns on the safe search filter while searching for images", action="store_true")
         parser.add_argument('-nn', '--no_numbering', default=False, help="Allows you to exclude the default numbering of images", action="store_true")
+        parser.add_argument('-baidu', '--baidu', default=False,
+                            help="Allows you to download images from baidu", action="store_true")
 
         args = parser.parse_args()
         arguments = vars(args)
@@ -398,11 +402,14 @@ class googleimagesdownload:
 
 
     #building main search URL
-    def build_search_url(self,search_term,params,url,similar_images,specific_site,safe_search):
+    def build_search_url(self,search_term,params,url,similar_images,specific_site,safe_search,baidu):
         #check safe_search
         safe_search_string = "&safe=active"
         # check the args and choose the URL
-        if url:
+        if baidu:
+            url = 'http://image.baidu.com/search/flip?tn=baiduimage&ie=utf-8&word=' + quote(
+                search_term) + '&ct=201326592&v=flip'
+        elif url:
             url = url
         elif similar_images:
             print(similar_images)
@@ -732,6 +739,23 @@ class googleimagesdownload:
                 count-1) + " is all we got for this search filter!")
         return items,errorCount,abs_path
 
+    def dowmloadPic(html, keyword):
+        pic_url = re.findall('"objURL":"(.*?)",', html, re.S)
+        i = 1
+        print('find_key_word:' + keyword + ', downloading...')
+        for each in pic_url:
+            print('downloading the' + str(i) + 'th picture, URL:' + str(each))
+            try:
+                pic = requests.get(each, timeout=10)
+            except requests.exceptions.ConnectionError:
+                print('error cannot be downloaded!')
+                continue
+
+            dir = '../images/' + keyword + '_' + str(i) + '.jpg'
+            fp = open(dir, 'wb')
+            fp.write(pic.content)
+            fp.close()
+            i += 1
 
     # Bulk Download
     def download(self,arguments):
@@ -832,41 +856,48 @@ class googleimagesdownload:
 
                     params = self.build_url_parameters(arguments)     #building URL with params
 
-                    url = self.build_search_url(search_term,params,arguments['url'],arguments['similar_images'],arguments['specific_site'],arguments['safe_search'])      #building main search url
+                    url = self.build_search_url(search_term,params,arguments['url'],arguments['similar_images'],arguments['specific_site'],arguments['safe_search'],arguments['baidu'])      #building main search url
 
-                    if limit < 101:
-                        raw_html = self.download_page(url)  # download page
+                    if arguments['baidu']:
+
+                        raw_html = requests.get(url)
+                        self.dowmloadPic(raw_html.text, search_term)
+
                     else:
-                        raw_html = self.download_extended_page(url,arguments['chromedriver'])
+                        if limit < 101:
+                            raw_html = self.download_page(url)  # download page
+                        else:
+                            raw_html = self.download_extended_page(url,arguments['chromedriver'])
 
-                    print("Starting Download...")
-                    items,errorCount,abs_path = self._get_all_items(raw_html,main_directory,dir_name,limit,arguments)    #get all image items and download images
-                    paths[pky + search_keyword[i] + sky] = abs_path
 
-                    #dumps into a text file
-                    if arguments['extract_metadata']:
-                        try:
-                            if not os.path.exists("logs"):
-                                os.makedirs("logs")
-                        except OSError as e:
-                            print(e)
-                        text_file = open("logs/"+search_keyword[i]+".txt", "w")
-                        text_file.write(json.dumps(items, indent=4, sort_keys=True))
-                        text_file.close()
+                        print("Starting Download...")
+                        items,errorCount,abs_path = self._get_all_items(raw_html,main_directory,dir_name,limit,arguments)    #get all image items and download images
+                        paths[pky + search_keyword[i] + sky] = abs_path
 
-                    #Related images
-                    if arguments['related_images']:
-                        print("\nGetting list of related keywords...this may take a few moments")
-                        tabs = self.get_all_tabs(raw_html)
-                        for key, value in tabs.items():
-                            final_search_term = (search_term + " - " + key)
-                            print("\nNow Downloading - " + final_search_term)
-                            if limit < 101:
-                                new_raw_html = self.download_page(value)  # download page
-                            else:
-                                new_raw_html = self.download_extended_page(value,arguments['chromedriver'])
-                            self.create_directories(main_directory, final_search_term,arguments['thumbnail'])
-                            self._get_all_items(new_raw_html, main_directory, search_term + " - " + key, limit,arguments)
+                        #dumps into a text file
+                        if arguments['extract_metadata']:
+                            try:
+                                if not os.path.exists("logs"):
+                                    os.makedirs("logs")
+                            except OSError as e:
+                                print(e)
+                            text_file = open("logs/"+search_keyword[i]+".txt", "w")
+                            text_file.write(json.dumps(items, indent=4, sort_keys=True))
+                            text_file.close()
+
+                        #Related images
+                        if arguments['related_images']:
+                            print("\nGetting list of related keywords...this may take a few moments")
+                            tabs = self.get_all_tabs(raw_html)
+                            for key, value in tabs.items():
+                                final_search_term = (search_term + " - " + key)
+                                print("\nNow Downloading - " + final_search_term)
+                                if limit < 101:
+                                    new_raw_html = self.download_page(value)  # download page
+                                else:
+                                    new_raw_html = self.download_extended_page(value,arguments['chromedriver'])
+                                self.create_directories(main_directory, final_search_term,arguments['thumbnail'])
+                                self._get_all_items(new_raw_html, main_directory, search_term + " - " + key, limit,arguments)
 
                     i += 1
                     print("\nErrors: " + str(errorCount) + "\n")
