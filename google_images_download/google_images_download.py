@@ -33,15 +33,16 @@ import json
 import re
 import codecs
 import socket
-import re
-import requests
+
 
 args_list = ["keywords", "keywords_from_file", "prefix_keywords", "suffix_keywords",
              "limit", "format", "color", "color_type", "usage_rights", "size",
              "exact_size", "aspect_ratio", "type", "time", "time_range", "delay", "url", "single_image",
              "output_directory", "image_directory", "no_directory", "proxy", "similar_images", "specific_site",
              "print_urls", "print_size", "print_paths", "metadata", "extract_metadata", "socket_timeout",
-             "thumbnail", "language", "prefix", "chromedriver", "related_images", "safe_search", "no_numbering","baidu"]
+             "thumbnail", "language", "prefix", "chromedriver", "related_images", "safe_search", "no_numbering",
+             "Y_name", "Y_data_dir", "Y_buff", "Y_buff_nr", "Y_img_prop_width", "Y_img_prop_height",
+             "Y_img_prop_depth", "Y_force_resize", "Y_force_remap", "Y_label_map", "Y_color_map", "Y_label_remap"]
 
 
 def user_input():
@@ -110,8 +111,23 @@ def user_input():
         parser.add_argument('-ri', '--related_images', default=False, help="Downloads images that are similar to the keyword provided", action="store_true")
         parser.add_argument('-sa', '--safe_search', default=False, help="Turns on the safe search filter while searching for images", action="store_true")
         parser.add_argument('-nn', '--no_numbering', default=False, help="Allows you to exclude the default numbering of images", action="store_true")
-        parser.add_argument('-baidu', '--baidu', default=False,
-                            help="Allows you to download images from baidu", action="store_true")
+
+        # For creating yaml
+        parser.add_argument('--Y_name', help='name: "general"', type=str, required=False)
+        parser.add_argument('--Y_data_dir', help='data_dir: "/cache/datasets/persons/dataset"', type=str, required=False)
+        parser.add_argument('--Y_buff', help='buff: True ', type=int, required=False)
+        parser.add_argument('--Y_buff_nr', help='buff_nr: 3000', type=int, required=False)
+        parser.add_argument('--Y_img_prop_width', help='width: 512', type=int, required=False)
+        parser.add_argument('--Y_img_prop_height', help='height: 512', type=int, required=False)
+        parser.add_argument('--Y_img_prop_depth', help='depth: 3', type=int, required=False)
+        parser.add_argument('--Y_force_resize', help='force_resize: True', type=bool, required=False)
+        parser.add_argument('--Y_force_remap', help='force_remap: False', type=bool, required=False)
+        parser.add_argument('--Y_label_map', help='label_map: 0: "background", 1: "person"', type=str, required=False)
+        parser.add_argument('--Y_color_map', help='color_map: 0: [0, 0, 0], 1: [0, 255, 0]', type=str, required=False)
+        parser.add_argument('--Y_label_remap', help='label_remap: 0: 0 1: 1', type=str, required=False)
+
+        ## test downloading from baidu
+        #parser.add_argument('-baidu', '--baidu', default=False,help="Allows you to download images from baidu", action="store_true")
 
         args = parser.parse_args()
         arguments = vars(args)
@@ -402,7 +418,39 @@ class googleimagesdownload:
 
 
     #building main search URL
-    def build_search_url(self,search_term,params,url,similar_images,specific_site,safe_search,baidu):
+    def build_search_url(self,search_term,params,url,similar_images,specific_site,safe_search):
+        #check safe_search
+        safe_search_string = "&safe=active"
+        # check the args and choose the URL
+
+        ### test for downloading from baidu
+        # if baidu:
+        #     url = 'http://image.baidu.com/search/flip?tn=baiduimage&ie=utf-8&word=' + quote(
+        #         search_term) + '&ct=201326592&v=flip'
+
+        if url:
+            url = url
+        elif similar_images:
+            print(similar_images)
+            keywordem = self.similar_images(similar_images)
+            url = 'https://www.google.com/search?q=' + keywordem + '&espv=2&biw=1366&bih=667&site=webhp&source=lnms&tbm=isch&sa=X&ei=XosDVaCXD8TasATItgE&ved=0CAcQ_AUoAg'
+        elif specific_site:
+            url = 'https://www.google.com/search?q=' + quote(
+                search_term) + '&as_sitesearch=' + specific_site + '&espv=2&biw=1366&bih=667&site=webhp&source=lnms&tbm=isch' + params + '&sa=X&ei=XosDVaCXD8TasATItgE&ved=0CAcQ_AUoAg'
+        else:
+            url = 'https://www.google.com/search?q=' + quote(
+                search_term) + '&espv=2&biw=1366&bih=667&site=webhp&source=lnms&tbm=isch' + params + '&sa=X&ei=XosDVaCXD8TasATItgE&ved=0CAcQ_AUoAg'
+
+        #safe search check
+        if safe_search:
+            url = url + safe_search_string
+
+        # print(url)
+        return url
+
+
+    #test downloading from baidu
+    def build_search_url_baidu(self,search_term,params,url,similar_images,specific_site,safe_search,baidu):
         #check safe_search
         safe_search_string = "&safe=active"
         # check the args and choose the URL
@@ -739,6 +787,7 @@ class googleimagesdownload:
                 count-1) + " is all we got for this search filter!")
         return items,errorCount,abs_path
 
+    ### test downloading from baidu
     def dowmloadPic(html, keyword):
         pic_url = re.findall('"objURL":"(.*?)",', html, re.S)
         i = 1
@@ -856,48 +905,52 @@ class googleimagesdownload:
 
                     params = self.build_url_parameters(arguments)     #building URL with params
 
-                    url = self.build_search_url(search_term,params,arguments['url'],arguments['similar_images'],arguments['specific_site'],arguments['safe_search'],arguments['baidu'])      #building main search url
+                    ### test downloading from baidu
+                    # url = self.build_search_url_baidu(search_term,params,arguments['url'],arguments['similar_images'],arguments['specific_site'],arguments['safe_search'],arguments['baidu'])      #building main search url
 
-                    if arguments['baidu']:
+                    url = self.build_search_url(search_term,params,arguments['url'],arguments['similar_images'],arguments['specific_site'],arguments['safe_search'])      #building main search url
 
-                        raw_html = requests.get(url)
-                        self.dowmloadPic(raw_html.text, search_term)
+                    ### test downloading from baidu
+                    # if arguments['baidu']:
+                    #
+                    #     raw_html = requests.get(url)
+                    #     self.dowmloadPic(raw_html.text, search_term)
+                    # else:
 
+                    if limit < 101:
+                        raw_html = self.download_page(url)  # download page
                     else:
-                        if limit < 101:
-                            raw_html = self.download_page(url)  # download page
-                        else:
-                            raw_html = self.download_extended_page(url,arguments['chromedriver'])
+                        raw_html = self.download_extended_page(url,arguments['chromedriver'])
 
 
-                        print("Starting Download...")
-                        items,errorCount,abs_path = self._get_all_items(raw_html,main_directory,dir_name,limit,arguments)    #get all image items and download images
-                        paths[pky + search_keyword[i] + sky] = abs_path
+                    print("Starting Download...")
+                    items,errorCount,abs_path = self._get_all_items(raw_html,main_directory,dir_name,limit,arguments)    #get all image items and download images
+                    paths[pky + search_keyword[i] + sky] = abs_path
 
-                        #dumps into a text file
-                        if arguments['extract_metadata']:
-                            try:
-                                if not os.path.exists("logs"):
-                                    os.makedirs("logs")
-                            except OSError as e:
-                                print(e)
-                            text_file = open("logs/"+search_keyword[i]+".txt", "w")
-                            text_file.write(json.dumps(items, indent=4, sort_keys=True))
-                            text_file.close()
+                    #dumps into a text file
+                    if arguments['extract_metadata']:
+                        try:
+                            if not os.path.exists("logs"):
+                                os.makedirs("logs")
+                        except OSError as e:
+                            print(e)
+                        text_file = open("logs/"+search_keyword[i]+".txt", "w")
+                        text_file.write(json.dumps(items, indent=4, sort_keys=True))
+                        text_file.close()
 
-                        #Related images
-                        if arguments['related_images']:
-                            print("\nGetting list of related keywords...this may take a few moments")
-                            tabs = self.get_all_tabs(raw_html)
-                            for key, value in tabs.items():
-                                final_search_term = (search_term + " - " + key)
-                                print("\nNow Downloading - " + final_search_term)
-                                if limit < 101:
-                                    new_raw_html = self.download_page(value)  # download page
-                                else:
-                                    new_raw_html = self.download_extended_page(value,arguments['chromedriver'])
-                                self.create_directories(main_directory, final_search_term,arguments['thumbnail'])
-                                self._get_all_items(new_raw_html, main_directory, search_term + " - " + key, limit,arguments)
+                    #Related images
+                    if arguments['related_images']:
+                        print("\nGetting list of related keywords...this may take a few moments")
+                        tabs = self.get_all_tabs(raw_html)
+                        for key, value in tabs.items():
+                            final_search_term = (search_term + " - " + key)
+                            print("\nNow Downloading - " + final_search_term)
+                            if limit < 101:
+                                new_raw_html = self.download_page(value)  # download page
+                            else:
+                                new_raw_html = self.download_extended_page(value,arguments['chromedriver'])
+                            self.create_directories(main_directory, final_search_term,arguments['thumbnail'])
+                            self._get_all_items(new_raw_html, main_directory, search_term + " - " + key, limit,arguments)
 
                     i += 1
                     print("\nErrors: " + str(errorCount) + "\n")
@@ -917,7 +970,6 @@ def main():
             t0 = time.time()  # start the timer
             response = googleimagesdownload()
             paths = response.download(arguments)  #wrapping response in a variable just for consistency
-
             print("\nEverything downloaded!")
             t1 = time.time()  # stop the timer
             total_time = t1 - t0  # Calculating the total time required to crawl, find and download all the links of 60,000 images

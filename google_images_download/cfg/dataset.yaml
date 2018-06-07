@@ -1,0 +1,26 @@
+# dataset cfg file
+name: general
+data_dir: /home/nubot/google-images-download/google_images_download/downloads
+buff: true            # if this is true we buffer buff_n images in a fifo
+buff_nr: 3000         # number of images to keep in fifo (prefetch batch) <-should be bigger than batch size to make sense
+img_prop:
+  width: 512
+  height: 360
+  depth: 3            # number of channels in original image
+force_resize: true    # if dataset contains images of different size, it should be True
+force_remap: true
+label_map:
+  0: bears
+  20: cats
+  40: birds
+color_map: 0:[0,0,0] 20:[64,0,0] 40:[128,0,0] # bgr
+label_remap:          # for softmax (it must be an index of the onehot array)
+  0: 0
+  20: 1
+  40: 2
+label0: bears
+data_dir0: /home/nubot/google-images-download/google_images_download/downloads/bears
+label1: cats
+data_dir1: /home/nubot/google-images-download/google_images_download/downloads/cats
+label2: birds
+data_dir2: /home/nubot/google-images-download/google_images_download/downloads/birds
