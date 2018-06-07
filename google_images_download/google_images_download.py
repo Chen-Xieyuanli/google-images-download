@@ -42,7 +42,8 @@ args_list = ["keywords", "keywords_from_file", "prefix_keywords", "suffix_keywor
              "print_urls", "print_size", "print_paths", "metadata", "extract_metadata", "socket_timeout",
              "thumbnail", "language", "prefix", "chromedriver", "related_images", "safe_search", "no_numbering",
              "Y_name", "Y_data_dir", "Y_buff", "Y_buff_nr", "Y_img_prop_width", "Y_img_prop_height",
-             "Y_img_prop_depth", "Y_force_resize", "Y_force_remap", "Y_label_map", "Y_color_map", "Y_label_remap"]
+             "Y_img_prop_depth", "Y_force_resize", "Y_force_remap", "Y_label_map", "Y_color_map", "Y_label_remap",
+             "Y_direction"]
 
 
 def user_input():
@@ -125,6 +126,8 @@ def user_input():
         parser.add_argument('--Y_label_map', help='label_map: 0: "background", 1: "person"', type=str, required=False)
         parser.add_argument('--Y_color_map', help='color_map: 0: [0, 0, 0], 1: [0, 255, 0]', type=str, required=False)
         parser.add_argument('--Y_label_remap', help='label_remap: 0: 0 1: 1', type=str, required=False)
+        parser.add_argument('--Y_directory', help='create the yaml file in a specific directory', type=str,
+                            required=False)
 
         ## test downloading from baidu
         #parser.add_argument('-baidu', '--baidu', default=False,help="Allows you to download images from baidu", action="store_true")
