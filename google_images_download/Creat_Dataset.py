@@ -124,11 +124,16 @@ def Creat_Yaml_Files(arguments, paths):
     if arguments['Y_directory']:
         _folder = arguments['Y_directory']  # use the specific direction
     else:
-        _folder = 'cfg'  # default direction
+        _folder = 'cfg/'  # default direction
+
+    if arguments['Y_filename']:
+        _filename = arguments['Y_filename']  # use the specific direction
+    else:
+        _filename = 'dataset'  # default direction
 
     if not os.path.exists(_folder):
         os.makedirs(_folder)
-    Yaml_File = open(_folder+'/dataset.yaml', 'wb+')
+    Yaml_File = open(_folder+_filename+'.yaml', 'wb+')
     yaml.dump(Dataset, Yaml_File)
     Yaml_File.close()
 
