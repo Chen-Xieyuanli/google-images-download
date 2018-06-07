@@ -42,7 +42,7 @@ $ pip install ruamel.yaml
 - You could directly run a demo using commands below, in the folder witch contains this script. You could specify a directory and a name for the generated yaml file using '--Y_directory' and '--Y_filename', or it will be generated as 'cfg/dataset.yaml'.
 
 ```sh
-$ python Creat_Dataset.py --keywords "bears,cats,birds" --limit 20 --Y_directory "testdirectory" --Y_filename "testfile"
+$ python Creat_Dataset.py --keywords "bears,cats,birds" --limit 20 --Y_directory "testdirectory/" --Y_filename "testfile"
 ```
 
 - You could change all the parameters in the generated configuration yaml file, and run a demo using commands below.
