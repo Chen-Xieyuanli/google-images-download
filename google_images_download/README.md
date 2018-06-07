@@ -11,9 +11,8 @@ Writing a script that can automatically download images from 'Google Images' and
 clean up the outliers in the data using an unsupervised clustering
 
 ## How to run
-
 #### Install the Google Images Download
-##### This script is based on the Google Images Download, so please check out the Google Images Download package first before using this script.
+##### This script is based on the Google Images Download, so please have a look at the Google Images Download package first before using this script.
 - If you want to adjust all the parameters in the generated configuration yaml file. You have to download the whole package, because I did some modification in the original Google Images Download package.
 
 ```sh
@@ -25,7 +24,7 @@ $ git clone https://github.com/Chen-Xieyuanli/google-images-download.git
 ```sh
 $ pip install google_images_download
 ```
-##### Other dependencies
+#### Other dependencies
 
 - I created this script using Ubuntu14.04 and python2.7.6
 - Please install 'pyyaml' and 'ruamel.yaml' by typing:
@@ -38,7 +37,7 @@ $ pip install ruamel.yaml
 - During the development, I also get the error of "ImportError: cannot import name get_column_letter
 ". I solved this problem by reinstalling the latest openpyxl. Then it works.
 
-##### Run a sample demo
+#### Run a sample demo
 
 - You could directly run a demo using commands below, in the folder witch contains this script.
 
