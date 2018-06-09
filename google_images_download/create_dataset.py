@@ -10,24 +10,24 @@ from collections import OrderedDict  # To keep the output order
 
 def deafault_yaml():
     deafault_yaml = """\
-# dataset cfg file
-name: "general"
-data_dir: "/cache/datasets/persons/dataset"
-buff: True            # if this is true we buffer buff_n images in a fifo
-buff_nr: 3000         # number of images to keep in fifo (prefetch batch) <-should be bigger than batch size to make sense
-img_prop:
-  width: 512
-  height: 512
-  depth: 3            # number of channels in original image
-force_resize: True    # if dataset contains images of different size, it should be True
-force_remap: False
-label_map:
-  0: "background"
-color_map: # bgr
-  0: [0, 0, 0]
-label_remap:          # for softmax (it must be an index of the onehot array)
-  0: 0
-"""
+        # dataset cfg file
+        name: "general"
+        data_dir: "/cache/datasets/persons/dataset"
+        buff: True            # if this is true we buffer buff_n images in a fifo
+        buff_nr: 3000         # number of images to keep in fifo (prefetch batch) <-should be bigger than batch size to make sense
+        img_prop:
+          width: 512
+          height: 512
+          depth: 3            # number of channels in original image
+        force_resize: True    # if dataset contains images of different size, it should be True
+        force_remap: False
+        label_map:
+          0: "background"
+        color_map: # bgr
+          0: [0, 0, 0]
+        label_remap:          # for softmax (it must be an index of the onehot array)
+          0: 0
+        """
     return deafault_yaml
 
 
